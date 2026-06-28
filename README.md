@@ -10,6 +10,11 @@ Aplicación de entrenamiento con voz para Linux (y futuro Windows).
 - GUI simple tipo pantalla de gimnasio
 - Botón START / STOP
 
+## Requisitos
+Python 3.10+
+Piper TTS instalado
+ALSA / aplay funcionando
+
 ## 🚀 Cómo ejecutar
 
 ```bash
@@ -18,7 +23,3 @@ cd faper-trainer
 source .venv/bin/activate
 python gui.py
 
-## Requisitos
-Python 3.10+
-Piper TTS instalado
-ALSA / aplay funcionando
