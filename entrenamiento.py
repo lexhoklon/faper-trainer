@@ -1,13 +1,15 @@
 from speaker import Speaker
 import time
 import threading
+import progreso
 from workout import (
     calentamiento,
-    ejercicios,
     descanso,
     recuperacion,
     estiramiento,
     rondas,
+    rutinas,
+    es_dia_descanso,
 )
 
 
@@ -19,6 +21,10 @@ class Entrenamiento:
         self.tiempo_restante = 0
         self.speaker = Speaker()
 
+        # Al crear el objeto, ya calculamos qué rutina toca hoy
+        # Guardamos el índice para poder guardar el progreso al terminar
+        self.indice_actual, self.rutina_actual = progreso.rutina_de_hoy(rutinas)
+
     @property
     def activo(self):
         return self._activo.is_set()
@@ -26,9 +32,17 @@ class Entrenamiento:
     def iniciar(self):
         if self.activo:
             return
+
+        # Si hoy es día de descanso, no hace nada
+        if es_dia_descanso():
+            self.ejercicio_actual = "Día de descanso 💤"
+            return
+
         self._activo.set()
-        self.speaker.hablar("Empezamos")
-        self.speaker.esperar()  # ← espera que "Empezamos" termine
+        nombre_rutina = self.rutina_actual["nombre"]
+
+        self.speaker.hablar(f"Comenzamos rutina de {nombre_rutina}")
+        self.speaker.esperar()
         self._fase_calentamiento()
         self._fase_rondas()
         self._fase_estiramiento()
@@ -42,22 +56,23 @@ class Entrenamiento:
         if not self.activo:
             return
         self.speaker.hablar("Calentamiento")
-        self.speaker.esperar()  # ← espera que "Calentamiento" termine
-        self.contar(*calentamiento)  # ← y arranca el time
-    
+        self.speaker.esperar()
+        self.contar(*calentamiento)
+
     def _fase_rondas(self):
         for ronda in range(rondas):
             if not self.activo:
                 return
             print(f"\n===== RONDA {ronda + 1} =====")
             self.speaker.hablar(f"Ronda {ronda + 1}")
-            self.speaker.esperar()  # ← espera el anuncio de ronda
+            self.speaker.esperar()
             self._fase_ejercicios()
             if ronda < rondas - 1:
                 self._anunciar_y_contar("Recuperación", *recuperacion)
-    
+
     def _fase_ejercicios(self):
-        for nombre, tiempo in ejercicios:
+        # Toma los ejercicios de la rutina actual
+        for nombre, tiempo in self.rutina_actual["ejercicios"]:
             if not self.activo:
                 return
             self._anunciar_y_contar(nombre, nombre, tiempo)
@@ -73,10 +88,12 @@ class Entrenamiento:
         self.tiempo_restante = 0
         self._activo.clear()
 
+        # Ahora le pasamos también el nombre de la rutina
+        progreso.guardar(self.indice_actual, self.rutina_actual["nombre"])
+
     # ── helpers ────────────────────────────────────────────
 
     def _anunciar_y_contar(self, anuncio, nombre, tiempo):
-        """Anuncia, hace cuenta regresiva y empieza el timer."""
         if not self.activo:
             return
         self.speaker.hablar(anuncio)
@@ -94,4 +111,3 @@ class Entrenamiento:
                 ya_anuncio_tres = True
             time.sleep(1)
             tiempo -= 1
-    
