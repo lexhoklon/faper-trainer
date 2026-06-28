@@ -11,9 +11,9 @@ Aplicación de entrenamiento con voz para Linux (y futuro Windows).
 - Botón START / STOP
 
 ## Requisitos
-Python 3.10+
-Piper TTS instalado
-ALSA / aplay funcionando
+- Python 3.10+
+- Piper TTS instalado
+- ALSA / aplay funcionando
 
 ## 🚀 Cómo ejecutar
 
