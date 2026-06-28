@@ -5,7 +5,7 @@ import threading
 import edge_tts
 
 # La voz a usar — puedes cambiarla (ver más abajo)
-VOZ = "es-ES-AlvaroNeural"
+VOZ = "es-MX-DaliaNeural"
 
 class Speaker:
 

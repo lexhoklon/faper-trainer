@@ -1,4 +1,4 @@
-calentamiento = ("Calentamiento", 10)
+calentamiento = ("Calentamiento", 300)
 
 ejercicios = [
     ("Sentadillas con subida de rodilla", 45),
