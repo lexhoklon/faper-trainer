@@ -18,7 +18,7 @@ cd faper-trainer
 source .venv/bin/activate
 python gui.py
 
-# Requisitos
+## Requisitos
 Python 3.10+
 Piper TTS instalado
 ALSA / aplay funcionando
