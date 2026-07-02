@@ -1,8 +1,8 @@
 {
   "indice": 0,
-  "ultima_fecha": "2026-06-28",
+  "ultima_fecha": null,
   "descansos": [],
-  "entrenamientos": {
-    "2026-06-28": "Full Body"
+  "pesos": {
+    "2026-07-01": 66.3
   }
 }

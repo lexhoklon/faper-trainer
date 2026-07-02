@@ -5,10 +5,13 @@ Aplicación de entrenamiento en casa con voz IA para Linux.
 - 🔄 Sistema de rutinas rotativas automáticas (Full Body, Tronco Superior, Tronco Inferior)
 - ⏱️ Temporizador por intervalos con avisos de voz sincronizados
 - 🗣️ Voz IA en español usando Edge TTS (Microsoft Neural)
-- 🖥️ GUI simple tipo pantalla de gimnasio
+- 🖥️ GUI centrada tipo pantalla de gimnasio
 - 📅 Calendario mensual con registro de progreso
 - ✅ Registro de días entrenados y días de descanso
-- ⏹️ Botón START / STOP
+- 📊 Historial semanal de entrenamientos
+- ⚖️ Registro y seguimiento de peso diario
+- 🔥 Calorías aproximadas por rutina
+- 😴 Días de descanso automáticos con botón de registro manual
 
 ## 📋 Requisitos
 - Python 3.10+
@@ -30,7 +33,17 @@ Todo el entrenamiento se configura desde `workout.py`:
 - **Rutinas** — agrega, elimina o modifica los ejercicios de cada rutina
 - **Tiempos** — cambia la duración del calentamiento, ejercicios, descansos, recuperación y estiramiento
 - **Rondas** — modifica el número de rondas por sesión
+- **Calorías** — ajusta las calorías aproximadas de cada rutina
 - **Días de descanso** — ajusta qué días de la semana son de descanso
+
+## 📁 Estructura del proyecto
+faper-trainer/
+├── gui.py # Interfaz gráfica principal
+├── entrenamiento.py # Lógica del entrenamiento y fases
+├── workout.py # Rutinas, ejercicios y tiempos
+├── speaker.py # Motor de voz con Edge TTS
+├── progreso.py # Registro y lectura del progreso
+└── progreso.json # Historial generado automáticamente
 
 ## 🗣️ Cambiar la voz
 En `speaker.py` puedes cambiar la variable `VOZ`:

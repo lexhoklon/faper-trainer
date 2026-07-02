@@ -15,6 +15,7 @@ rondas        = 4
 rutinas = [
     {
         "nombre": "Full Body",
+        "calorias": 210,
         "ejercicios": [
             ("Sentadilla con elevación de rodilla", 45),
             ("Shadow Boxing", 45),
@@ -25,6 +26,7 @@ rutinas = [
     },
     {
         "nombre": "Tronco Superior",
+        "calorias": 180,
         "ejercicios": [
             ("Flexiones contra pared", 45),
             ("Shadow Boxing", 45),
@@ -35,6 +37,7 @@ rutinas = [
     },
     {
         "nombre": "Tronco Inferior",
+        "calorias": 190,
         "ejercicios": [
             ("Sentadilla clásica", 45),
             ("Zancada atrás alternada", 45),

@@ -8,6 +8,9 @@ import progreso
 
 entrenamiento = Entrenamiento()
 hilo = None
+ventana_cal = None
+ventana_historial = None  # ← nueva
+ventana_peso = None  # ← agrégala al inicio junto a las otras
 
 
 def iniciar():
@@ -37,6 +40,13 @@ def marcar_descanso():
 
 
 def abrir_calendario():
+    global ventana_cal
+
+    # SI ya esta abierto, solo lo trae al frente en vez de abrir otro
+    if ventana_cal and ventana_cal.winfo_exists():
+        ventana_cal.lift()
+        return
+
     datos = progreso.cargar()
     entrenamientos = datos.get("entrenamientos", {})
     descansos = datos.get("descansos", [])
@@ -119,6 +129,121 @@ def abrir_calendario():
         ).grid(row=len(cal) + 3, column=i * 2, columnspan=2, pady=8)
 
 
+def abrir_historial():
+    global ventana_historial
+
+    # Si ya está abierta, la trae al frente
+    if ventana_historial and ventana_historial.winfo_exists():
+        ventana_historial.lift()
+        return
+
+    ventana_historial = tk.Toplevel(ventana)
+    ventana_historial.title("Historial semanal")
+    ventana_historial.configure(bg="black")
+    ventana_historial.resizable(False, False)
+
+    # Obtenemos el texto del resumen desde progreso.py
+    resumen = progreso.resumen_semana_actual()
+
+    tk.Label(
+        ventana_historial,
+        text=resumen,
+        font=("Courier", 13),  # Courier para que el texto quede alineado
+        fg="white",
+        bg="black",
+        justify="left",        # alineado a la izquierda
+        padx=20,
+        pady=20
+    ).pack()
+
+
+def abrir_registrar_peso():
+    global ventana_peso
+
+    if ventana_peso and ventana_peso.winfo_exists():
+        ventana_peso.lift()
+        return
+
+    ventana_peso = tk.Toplevel(ventana)
+    ventana_peso.title("Registrar peso")
+    ventana_peso.configure(bg="black")
+    ventana_peso.resizable(False, False)
+
+    tk.Label(
+        ventana_peso,
+        text="¿Cuánto pesas hoy? (kg)",
+        font=("Arial", 14, "bold"),
+        fg="white",
+        bg="black"
+    ).pack(pady=20)
+
+    # Campo de texto para ingresar el peso
+    entrada = tk.Entry(
+        ventana_peso,
+        font=("Arial", 20),
+        width=8,
+        justify="center"
+    )
+    entrada.pack(pady=10)
+    entrada.focus()  # el cursor queda listo para escribir
+
+    def guardar():
+        texto = entrada.get().strip().replace(",", ".")  # acepta coma o punto
+        try:
+            peso = float(texto)
+            progreso.registrar_peso(peso)
+            ventana_peso.destroy()
+            label_ejercicio.config(text=f"Peso registrado: {peso} kg ✅")
+        except ValueError:
+            # Si escribe algo que no es número, muestra error
+            label_error.config(text="⚠️ Ingresa un número válido")
+
+    label_error = tk.Label(
+        ventana_peso,
+        text="",
+        fg="red",
+        bg="black",
+        font=("Arial", 10)
+    )
+    label_error.pack()
+
+    tk.Button(
+        ventana_peso,
+        text="GUARDAR",
+        command=guardar,
+        width=12,
+        height=2,
+        bg="green",
+        fg="white"
+    ).pack(pady=15)
+
+
+def abrir_historial_peso():
+    global ventana_peso
+
+    if ventana_peso and ventana_peso.winfo_exists():
+        ventana_peso.lift()
+        return
+
+    ventana_peso = tk.Toplevel(ventana)
+    ventana_peso.title("Historial de peso")
+    ventana_peso.configure(bg="black")
+    ventana_peso.resizable(False, False)
+
+    resumen = progreso.historial_pesos()
+
+    tk.Label(
+        ventana_peso,
+        text=resumen,
+        font=("Courier", 13),
+        fg="white",
+        bg="black",
+        justify="left",
+        padx=20,
+        pady=20
+    ).pack()
+
+
 def crear_ventana():
     global ventana, label_ejercicio, label_tiempo
 
@@ -127,54 +252,79 @@ def crear_ventana():
     ventana.geometry("800x600")
     ventana.configure(bg="black")
 
+    # Frame central que contiene todo
+    frame_central = tk.Frame(ventana, bg="black")
+    frame_central.place(relx=0.5, rely=0.5, anchor="center")  # centrado perfecto
+
+    # ── Rutina de hoy ──────────────────────────────────────
     if es_dia_descanso():
         texto_rutina = "💤 Día de Descanso"
         color_rutina = "gray"
     else:
         _, rutina = progreso.rutina_de_hoy(rutinas)
-        texto_rutina = f"Rutina de hoy: {rutina['nombre']}"
+        calorias = rutina["calorias"]
+        texto_rutina = f"{rutina['nombre']}  🔥 ~{calorias} kcal"
         color_rutina = "yellow"
 
     tk.Label(
-        ventana,
+        frame_central,       # ← padre es frame_central, no ventana
         text=texto_rutina,
-        font=("Arial", 24, "bold"),
+        font=("Arial", 20, "bold"),
         fg=color_rutina,
         bg="black"
-    ).pack(pady=20)
+    ).pack(pady=10)
 
+    # ── Ejercicio actual ────────────────────────────────────
     label_ejercicio = tk.Label(
-        ventana,
+        frame_central,
         text="Listo",
-        font=("Arial", 40, "bold"),
+        font=("Arial", 32, "bold"),
         fg="white",
         bg="black"
     )
-    label_ejercicio.pack(pady=20)
+    label_ejercicio.pack(pady=5)
 
+    # ── Timer ───────────────────────────────────────────────
     label_tiempo = tk.Label(
-        ventana,
+        frame_central,
         text="0",
-        font=("Arial", 80, "bold"),
+        font=("Arial", 100, "bold"),
         fg="green",
         bg="black"
     )
-    label_tiempo.pack(pady=20)
+    label_tiempo.pack(pady=5)
 
-    estado_boton = "disabled" if es_dia_descanso() else "normal"
+    # ── Botones en grid 3x2 ─────────────────────────────────
+    frame_botones = tk.Frame(frame_central, bg="black")
+    frame_botones.pack(pady=15)
 
-    tk.Button(ventana, text="START", command=iniciar,
-              width=20, height=2, state=estado_boton).pack(pady=10)
+    estado_start = "disabled" if es_dia_descanso() else "normal"
 
-    tk.Button(ventana, text="STOP", command=detener,
-              width=20, height=2).pack(pady=10)
-
-    tk.Button(ventana, text="📅 VER PROGRESO", command=abrir_calendario,
-              width=20, height=2, bg="#1a1a2e", fg="white").pack(pady=10)
+    botones = [
+        ("START",               iniciar,              estado_start, "#1a1a2e", "white"),
+        ("STOP",                detener,              "normal",     "#1a1a2e", "white"),
+        ("📅 CALENDARIO",      abrir_calendario,     "normal",     "#1a1a2e", "white"),
+        ("📊 HISTORIAL",       abrir_historial,      "normal",     "#1a1a2e", "white"),
+        ("⚖️ REGISTRAR PESO",  abrir_registrar_peso, "normal",     "#1a1a2e", "white"),
+        ("📈 VER PESO",        abrir_historial_peso, "normal",     "#1a1a2e", "white"),
+    ]
 
     if es_dia_descanso():
-        tk.Button(ventana, text="MARCAR DESCANSO ✅", command=marcar_descanso,
-                  width=20, height=2, bg="gray", fg="white").pack(pady=10)
+        botones[0] = ("😴 MARCAR DESCANSO", marcar_descanso, "normal", "gray", "white")
+
+    for i, (texto, comando, estado, bg, fg) in enumerate(botones):
+        fila = i // 3
+        columna = i % 3
+        tk.Button(
+            frame_botones,
+            text=texto,
+            command=comando,
+            width=18,
+            height=2,
+            state=estado,
+            bg=bg,
+            fg=fg
+        ).grid(row=fila, column=columna, padx=8, pady=6)
 
     actualizar_labels()
     ventana.mainloop()
