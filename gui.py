@@ -4,13 +4,16 @@ import calendar
 from datetime import datetime
 from entrenamiento import Entrenamiento
 from workout import es_dia_descanso, rutinas
+from musica import Musica
+musica = Musica()
 import progreso
 
 entrenamiento = Entrenamiento()
+entrenamiento.speaker.musica = musica
 hilo = None
 ventana_cal = None
-ventana_historial = None  # ← nueva
-ventana_peso = None  # ← agrégala al inicio junto a las otras
+ventana_historial = None  
+ventana_peso = None  
 
 
 def iniciar():
@@ -244,6 +247,84 @@ def abrir_historial_peso():
     ).pack()
 
 
+ventana_musica = None
+
+def abrir_musica():
+    global ventana_musica
+
+    if ventana_musica and ventana_musica.winfo_exists():
+        ventana_musica.lift()
+        return
+
+    ventana_musica = tk.Toplevel(ventana)
+    ventana_musica.title("Música")
+    ventana_musica.configure(bg="black")
+    ventana_musica.resizable(False, False)
+
+    tk.Label(ventana_musica, text="🎵 Música",
+             font=("Arial", 16, "bold"), fg="white", bg="black").pack(pady=10)
+
+    # ── Búsqueda por texto ──
+    tk.Label(ventana_musica, text="Buscar playlist:",
+             font=("Arial", 11), fg="gray", bg="black").pack()
+    entrada = tk.Entry(ventana_musica, font=("Arial", 14),
+                       width=30, justify="center")
+    entrada.pack(pady=5)
+    entrada.insert(0, "workout playlist")
+    entrada.focus()
+
+    # ── O pegar link directo ──
+    tk.Label(ventana_musica, text="— o pega un link de YT Music —",
+             font=("Arial", 10), fg="gray", bg="black").pack(pady=5)
+    entrada_link = tk.Entry(ventana_musica, font=("Arial", 11),
+                            width=30, justify="center")
+    entrada_link.pack(pady=5)
+
+    # Label canción actual
+    label_cancion = tk.Label(ventana_musica, text="Sin reproducir",
+                             font=("Arial", 11), fg="gray", bg="black",
+                             wraplength=300)
+    label_cancion.pack(pady=5)
+
+    def buscar():
+        link = entrada_link.get().strip()
+        texto = entrada.get().strip()
+        if link:
+            label_cancion.config(text="Cargando...")
+            musica.iniciar_con_link(link)
+        elif texto:
+            label_cancion.config(text="Cargando...")
+            musica.iniciar(texto)
+
+    tk.Button(ventana_musica, text="▶ REPRODUCIR", command=buscar,
+              width=20, height=2, bg="green", fg="white").pack(pady=10)
+
+    # Controles
+    frame_controles = tk.Frame(ventana_musica, bg="black")
+    frame_controles.pack(pady=10)
+
+    tk.Button(frame_controles, text="⏮", command=musica.anterior,
+              width=5, height=2, bg="#1a1a2e", fg="white").grid(row=0, column=0, padx=5)
+    tk.Button(frame_controles, text="⏯", command=musica.play_pause,
+              width=5, height=2, bg="#1a1a2e", fg="white").grid(row=0, column=1, padx=5)
+    tk.Button(frame_controles, text="⏭", command=musica.siguiente,
+              width=5, height=2, bg="#1a1a2e", fg="white").grid(row=0, column=2, padx=5)
+
+    def actualizar_cancion():
+        if musica.cancion_actual:
+            label_cancion.config(text=musica.cancion_actual, fg="white")
+        if ventana_musica.winfo_exists():
+            ventana_musica.after(2000, actualizar_cancion)
+
+    actualizar_cancion()
+
+
+def cerrar_app():
+    """Se ejecuta al cerrar la ventana principal."""
+    musica.detener()
+    ventana.destroy()
+
+
 def crear_ventana():
     global ventana, label_ejercicio, label_tiempo
 
@@ -307,6 +388,7 @@ def crear_ventana():
         ("📊 HISTORIAL",       abrir_historial,      "normal",     "#1a1a2e", "white"),
         ("⚖️ REGISTRAR PESO",  abrir_registrar_peso, "normal",     "#1a1a2e", "white"),
         ("📈 VER PESO",        abrir_historial_peso, "normal",     "#1a1a2e", "white"),
+        ("🎵 MÚSICA",       abrir_musica,         "normal",     "#1a1a2e", "white"),
     ]
 
     if es_dia_descanso():
@@ -326,6 +408,7 @@ def crear_ventana():
             fg=fg
         ).grid(row=fila, column=columna, padx=8, pady=6)
 
+    ventana.protocol("WM_DELETE_WINDOW", cerrar_app)  # ← intercepta el cierre
     actualizar_labels()
     ventana.mainloop()
 

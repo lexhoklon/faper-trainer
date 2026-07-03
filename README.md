@@ -26,6 +26,18 @@ sudo pacman -S ffmpeg        # Arch Linux
 pip install edge-tts certifi aiohttp yarl idna --break-system-packages
 python gui.py
 ```
+## 🎵 Música
+La integración con YT Music requiere tener Brave instalado con una sesión de Google activa.
+
+### Uso
+1. Abre la app y haz clic en **🎵 MÚSICA**
+2. Escribe el nombre de una playlist en el buscador
+3. Presiona **▶ REPRODUCIR**
+4. Usa los controles ⏮ ⏯ ⏭ para navegar
+
+### ⚠️ Problemas conocidos (v4.0)
+- La reproducción por link directo de YT Music aún no funciona de forma fiable
+- Al cerrar la app, el proceso de Brave puede quedar corriendo en segundo plano — usar `pkill brave` si es necesario
 
 ## ⚙️ Configuración
 Todo el entrenamiento se configura desde `workout.py`:
