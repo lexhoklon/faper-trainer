@@ -1,3 +1,14 @@
+async def _set_volumen(self, nivel):
+    await self._page.evaluate(f"""
+        () => {{
+                const video = document.querySelector('video');
+                const audio = document.querySelector('audio');
+                if (video) video.volume = {nivel};
+                if (audio) audio.volume = {nivel};
+            }}
+        """)
+
+
 import threading
 import tkinter as tk
 import calendar
@@ -6,6 +17,8 @@ from entrenamiento import Entrenamiento
 from workout import es_dia_descanso, rutinas
 from musica import Musica
 musica = Musica()
+from spotify import Spotify
+spotify = Spotify()
 import progreso
 
 entrenamiento = Entrenamiento()
@@ -264,20 +277,25 @@ def abrir_musica():
     tk.Label(ventana_musica, text="🎵 Música",
              font=("Arial", 16, "bold"), fg="white", bg="black").pack(pady=10)
 
-    # ── Búsqueda por texto ──
-    tk.Label(ventana_musica, text="Buscar playlist:",
+    # ── Selector de servicio ──
+    tk.Label(ventana_musica, text="Servicio:",
              font=("Arial", 11), fg="gray", bg="black").pack()
-    entrada = tk.Entry(ventana_musica, font=("Arial", 14),
-                       width=30, justify="center")
-    entrada.pack(pady=5)
-    entrada.insert(0, "workout playlist")
-    entrada.focus()
 
-    # ── O pegar link directo ──
-    tk.Label(ventana_musica, text="— o pega un link de YT Music —",
-             font=("Arial", 10), fg="gray", bg="black").pack(pady=5)
+    servicio = tk.StringVar(value="Spotify")
+    frame_radio = tk.Frame(ventana_musica, bg="black")
+    frame_radio.pack(pady=5)
+    tk.Radiobutton(frame_radio, text="Spotify", variable=servicio,
+                   value="Spotify", bg="black", fg="white",
+                   selectcolor="black").grid(row=0, column=0, padx=10)
+    tk.Radiobutton(frame_radio, text="YT Music", variable=servicio,
+                   value="YTMusic", bg="black", fg="white",
+                   selectcolor="black").grid(row=0, column=1, padx=10)
+
+    # ── Link directo ──
+    tk.Label(ventana_musica, text="Link de playlist:",
+             font=("Arial", 11), fg="gray", bg="black").pack(pady=5)
     entrada_link = tk.Entry(ventana_musica, font=("Arial", 11),
-                            width=30, justify="center")
+                            width=35, justify="center")
     entrada_link.pack(pady=5)
 
     # Label canción actual
@@ -286,33 +304,57 @@ def abrir_musica():
                              wraplength=300)
     label_cancion.pack(pady=5)
 
-    def buscar():
+    def reproducir():
         link = entrada_link.get().strip()
-        texto = entrada.get().strip()
-        if link:
-            label_cancion.config(text="Cargando...")
-            musica.iniciar_con_link(link)
-        elif texto:
-            label_cancion.config(text="Cargando...")
-            musica.iniciar(texto)
+        if not link:
+            label_cancion.config(text="⚠️ Pega un link primero")
+            return
 
-    tk.Button(ventana_musica, text="▶ REPRODUCIR", command=buscar,
+        label_cancion.config(text="Cargando...")
+
+        if servicio.get() == "Spotify":
+            spotify.iniciar_con_link(link)
+            entrenamiento.speaker.musica = spotify
+        else:
+            musica.iniciar_con_link(link)
+            entrenamiento.speaker.musica = musica
+
+    tk.Button(ventana_musica, text="▶ REPRODUCIR", command=reproducir,
               width=20, height=2, bg="green", fg="white").pack(pady=10)
 
-    # Controles
+    # Controles — funcionan para ambos servicios
     frame_controles = tk.Frame(ventana_musica, bg="black")
     frame_controles.pack(pady=10)
 
-    tk.Button(frame_controles, text="⏮", command=musica.anterior,
+    def anterior():
+        if servicio.get() == "Spotify":
+            spotify.anterior()
+        else:
+            musica.anterior()
+
+    def play_pause():
+        if servicio.get() == "Spotify":
+            spotify.play_pause()
+        else:
+            musica.play_pause()
+
+    def siguiente():
+        if servicio.get() == "Spotify":
+            spotify.siguiente()
+        else:
+            musica.siguiente()
+
+    tk.Button(frame_controles, text="⏮", command=anterior,
               width=5, height=2, bg="#1a1a2e", fg="white").grid(row=0, column=0, padx=5)
-    tk.Button(frame_controles, text="⏯", command=musica.play_pause,
+    tk.Button(frame_controles, text="⏯", command=play_pause,
               width=5, height=2, bg="#1a1a2e", fg="white").grid(row=0, column=1, padx=5)
-    tk.Button(frame_controles, text="⏭", command=musica.siguiente,
+    tk.Button(frame_controles, text="⏭", command=siguiente,
               width=5, height=2, bg="#1a1a2e", fg="white").grid(row=0, column=2, padx=5)
 
     def actualizar_cancion():
-        if musica.cancion_actual:
-            label_cancion.config(text=musica.cancion_actual, fg="white")
+        cancion = spotify.cancion_actual if servicio.get() == "Spotify" else musica.cancion_actual
+        if cancion:
+            label_cancion.config(text=cancion, fg="white")
         if ventana_musica.winfo_exists():
             ventana_musica.after(2000, actualizar_cancion)
 
@@ -322,6 +364,7 @@ def abrir_musica():
 def cerrar_app():
     """Se ejecuta al cerrar la ventana principal."""
     musica.detener()
+    spotify.detener()
     ventana.destroy()
 
 
