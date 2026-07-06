@@ -140,7 +140,8 @@ class Spotify:
 
     def bajar_volumen(self):
         if self._loop and self._loop.is_running():
-            asyncio.run_coroutine_threadsafe(self._set_volumen(0.25), self._loop)
+            asyncio.run_coroutine_threadsafe(self._set_volumen(0.6), self._loop)
+
 
     def subir_volumen(self):
         if self._loop and self._loop.is_running():

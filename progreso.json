@@ -1,22 +1,25 @@
 {
-  "indice": 1,
-  "ultima_fecha": "2026-07-04",
+  "indice": 2,
+  "ultima_fecha": "2026-07-05",
   "descansos": [
     "2026-07-03"
   ],
   "pesos": {
     "2026-07-01": 66.3,
     "2026-07-02": 65.55,
-    "2026-07-04": 65.55
+    "2026-07-04": 65.55,
+    "2026-07-05": 64.85
   },
   "entrenamientos": {
     "2026-07-02": "Full Body",
-    "2026-07-04": "Tronco Superior"
+    "2026-07-04": "Tronco Superior",
+    "2026-07-05": "Tronco Inferior"
   },
   "semanas": {
     "2026-W26": {
       "2026-07-02": "Full Body",
-      "2026-07-04": "Tronco Superior"
+      "2026-07-04": "Tronco Superior",
+      "2026-07-05": "Tronco Inferior"
     }
   }
 }
